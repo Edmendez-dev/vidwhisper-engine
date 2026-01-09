@@ -20,6 +20,9 @@ COPY --chown=appuser:appuser requirements.txt .
 # Install all dependencies python 
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Install Curl for health checks
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 # Copy application code 
 COPY --chown=appuser:appuser app ./app
 

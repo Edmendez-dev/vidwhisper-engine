@@ -1,4 +1,46 @@
 services:
+  mongo:
+    image: mongo:8.0.4
+    container_name: vidwhisper-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=vidwhisper-db
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=0000
+    restart: unless-stopped
+    networks:
+      - vidwhisper-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: vidwhisper-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    networks:
+      - vidwhisper-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 30s
+
   backend:
     build:
       context: ./backend
@@ -8,7 +50,6 @@ services:
       - "8000:8000"
     volumes:
       - ./backend/app:/app/app
-      - ./backend/temp:/app/temp
     environment:
       - ENV=production
     restart: unless-stopped
@@ -35,6 +76,12 @@ services:
     restart: unless-stopped
     networks:
       - vidwhisper-network
+
+volumes:
+  mongo-data:
+    driver: local
+  minio-data:
+    driver: local
 
 networks:
   vidwhisper-network:
