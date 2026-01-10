@@ -4,7 +4,7 @@ from minio import Minio
 from minio.error import S3Error
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path="../.env")  # Load environment variables from .env file
+load_dotenv(dotenv_path=".env")  # Load environment variables from .env file
 
 @pytest.mark.asyncio
 async def test_minio_connection():
