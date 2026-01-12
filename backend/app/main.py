@@ -1,12 +1,15 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from app.core.database import connect_to_mongodb, close_mongodb_connection
+from app.core.minio import init_minio
 from app.api.v1.router import router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: Connect to MongoDB
     await connect_to_mongodb()
+    # Startup: Initialize MinIO
+    await init_minio()
     yield
     # Shutdown: Close MongoDB connection
     await close_mongodb_connection()
