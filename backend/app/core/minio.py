@@ -2,6 +2,7 @@ from minio import Minio
 from minio.error import S3Error
 import json
 from app.core.config import settings
+import logging
 
 async def init_minio():
     try:
@@ -16,7 +17,7 @@ async def init_minio():
 
         if not client.bucket_exists(bucket_name):
             client.make_bucket(bucket_name)
-            print(f"Bucket '{bucket_name}' created.")
+            logging.info(f"Bucket '{bucket_name}' created.")
 
         # Verify if the bucket haves public read access
         try:
@@ -32,7 +33,7 @@ async def init_minio():
             )
 
             if has_public_policy:
-                print(f"Bucket '{bucket_name}' already has public read access.")
+                logging.info(f"Bucket '{bucket_name}' already has public read access.")
                 return
         except S3Error as e:
             if e.code != "NoSuchBucketPolicy":
@@ -53,10 +54,10 @@ async def init_minio():
 
         # Apply the policy to the bucket
         client.set_bucket_policy(bucket_name, json.dumps(policy))
-        print(f"Bucket policy set for '{bucket_name}'.")
-        print("Bucket is now public for reading.")
+        logging.info(f"Bucket policy set for '{bucket_name}'.")
+        logging.info("Bucket is now public for reading.")
 
     except S3Error as e:
-        print(f"MinIO initialization failed: {e}")
+        logging.error(f"MinIO initialization failed: {e}")
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        logging.error(f"An unexpected error occurred: {e}")
