@@ -41,6 +41,36 @@ services:
       retries: 3
       start_period: 30s
 
+  redis:
+    image: redis:7.4-alpine
+    container_name: vidwhisper-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - vidwhisper-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: vidwhisper-worker
+    command: celery -A app.core.celery_app worker --loglevel=info
+    env_file:
+      - ./backend/.env
+    depends_on:
+      redis:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    networks:
+      - vidwhisper-network
+
   backend:
     build:
       context: ./backend
