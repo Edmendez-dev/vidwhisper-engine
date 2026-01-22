@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     MONGO_INITDB_ROOT_USERNAME: str
     MONGO_INITDB_ROOT_PASSWORD: str
 
+    # Redis settings
+    REDIS_HOST: str
+
     class Config:
         env_file = ".env"
 
