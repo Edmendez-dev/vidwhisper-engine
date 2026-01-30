@@ -15,6 +15,9 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+# Load the model
+model = whisper.load_model('base')
+
 async def get_db():
     try:
         mongodb_uri = f"mongodb://{settings.MONGO_INITDB_ROOT_USERNAME}:{settings.MONGO_INITDB_ROOT_PASSWORD}@{settings.MONGODB_URI}"
@@ -25,8 +28,17 @@ async def get_db():
         raise e
 
 # Functions 
-def _download_video_sync(url: str, filepath: str, transcription_id: str):
-    # Verify if URL is from YouTube
+def _download_video_sync(url: str, transcription_id: str):
+    response = requests.get(url, stream=True, headers={
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        })
+    response.raise_for_status()
+    content_type = response.headers.get('Content-Type', '').lower()
+
+    # Create tmp directory if it doesn't exist
+    os.makedirs('/app/tmp', exist_ok=True)
+
+    # Case 1: Yotube Video
     if "youtube.com" in url or "youtu.be" in url:
         ydl_opts = {
             'format': 'bestaudio[ext=m4a]/bestaudio/best',
@@ -54,23 +66,35 @@ def _download_video_sync(url: str, filepath: str, transcription_id: str):
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.extract_info(url, download=True)
-        return True
-    else:
-        response = requests.get(url, stream=True, headers={
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        })
-        response.raise_for_status()
-        with open(filepath, 'wb') as f:
+        return
+    
+    # Case 2: Link direct to audio or video
+    if "audio" in content_type or "video" in content_type:
+        path_temp = f'/app/tmp/{transcription_id}_tmp'
+
+        with open(path_temp, 'wb') as f:
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
-        return False
 
-def _convert_to_audio_sync(videoFilepath: str, audioFilepath: str):
-    try:
-        ffmpeg.input(videoFilepath).output(audioFilepath, acodec='libmp3lame', audio_bitrate='192k').overwrite_output().run(capture_stdout=True, capture_stderr=True)
-    except ffmpeg.Error as e:
-        logger.error(f'FFmpeg error: {e.stderr.decode()}')
-        raise e
+        if "audio" in content_type:
+            os.rename(path_temp, f'/app/tmp/{transcription_id}.mp3')
+            return
+        elif "video" in content_type:
+            try:
+                (
+                    ffmpeg.input(path_temp).output(f'/app/tmp/{transcription_id}.mp3', acodec='libmp3lame', audio_bitrate='192k').overwrite_output().run(quiet=True)
+                )
+                if os.path.exists(path_temp):
+                    os.remove(path_temp)
+            except Exception as e:
+                logger.error(f'Error converting video to audio: {e}')
+                raise e
+            return
+        else:
+            if os.path.exists(path_temp):
+                os.remove(path_temp)
+            raise Exception(f'Unsupported content type: {content_type}')
+    # Case 3: Audio file attachment
     
 def _upload_to_minio_sync(filepath: str, object_name: str):
     try:
@@ -91,23 +115,14 @@ async def download_video(url: str, filepath: str, name_id: str):
 
     try:
         loop = asyncio.get_event_loop()
-        is_already_audio = await loop.run_in_executor(None, _download_video_sync, url, filepath, name_id)
+        await loop.run_in_executor(None, _download_video_sync, url, name_id)
 
-        # Convert to audio
-        try:
-            if not is_already_audio:
-                await loop.run_in_executor(None, _convert_to_audio_sync, filepath, audio_path)
-                # logger.info(f'Video converted to audio at {audio_path}')
-
-            await loop.run_in_executor(None, _upload_to_minio_sync, audio_path, f"audios/{name_id}.mp3")
-            # logger.info(f'Audio uploaded to MinIO as audios/{name_id}.mp3')
-        except Exception as e:
-            logger.error(f'Error during video to audio conversion or upload: {e}')
-            raise e
-        finally:
-            # Clean up local video file
-            if os.path.exists(filepath):
-                os.remove(filepath)
+        await loop.run_in_executor(None, _upload_to_minio_sync, audio_path, f"audios/{name_id}.mp3")
+        logger.info(f'Audio uploaded to MinIO as audios/{name_id}.mp3')
+        
+        # Clean up local video file
+        if os.path.exists(filepath):
+            os.remove(filepath)
     except Exception as e:
         logger.error(f'Error to processing video from {url}: {e}')
         raise e
@@ -123,7 +138,7 @@ async def upload_to_minio(filepath: str, object_name: str):
 
 @celery_app.task(name="process_video_task")
 def process_video_task(transcription_id: str, video_url: str):
-    # logger.info(f'Starting processing for ID: {transcription_id}')
+    logger.info(f'Starting processing for ID: {transcription_id}')
     video_path = f"/app/tmp/{transcription_id}.mp4"
     audio_path = f"/app/tmp/{transcription_id}.mp3"
 
@@ -150,19 +165,16 @@ def process_video_task(transcription_id: str, video_url: str):
 
         # Download video and convert to audio
         loop.run_until_complete(download_video(video_url, video_path, transcription_id))
-
-        # Load the model
-        model = whisper.load_model('base')
         
         # Transcribe audio
-        # logger.info(f'Starting transcription for ID: {transcription_id}')
+        logger.info(f'Starting transcription for ID: {transcription_id}')
         result = model.transcribe(audio_path, fp16=False)
         transcribed_text = result.get('text', '')
 
         # Free memory used by the model
-        del model
-        import gc
-        gc.collect()
+        # del model
+        # import gc
+        # gc.collect()
 
         # Update status to 'completed'
         loop.run_until_complete(update_status('completed', {"text": transcribed_text}))
