@@ -12,6 +12,7 @@ from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorClient
 from app.core.celery_app import celery_app
 from app.core.config import settings
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -94,23 +95,22 @@ def _download_video_sync(url: str, transcription_id: str):
             if os.path.exists(path_temp):
                 os.remove(path_temp)
             raise Exception(f'Unsupported content type: {content_type}')
-    # Case 3: Audio file attachment
     
 def _upload_to_minio_sync(filepath: str, object_name: str):
     try:
         client = Minio(
-            "minio:9000",
+            settings.MINIO_ENDPOINT,
             access_key=settings.MINIO_ROOT_USER,
             secret_key=settings.MINIO_ROOT_PASSWORD,
             secure=False
         )
-        bucket_name = "vidwhisper-engine"
-        client.fput_object(bucket_name, object_name, filepath)
+        bucket_name = settings.MINIO_BUCKET
+        client.fput_object(bucket_name, object_name, filepath, content_type='audio/mpeg')
     except S3Error as e:
         logger.error(f'Error uploading video to MinIO: {e}')
         raise e
     
-async def download_video(url: str, filepath: str, name_id: str):
+async def download_video(url: str, name_id: str):
     audio_path = f"/app/tmp/{name_id}.mp3"
 
     try:
@@ -120,9 +120,6 @@ async def download_video(url: str, filepath: str, name_id: str):
         await loop.run_in_executor(None, _upload_to_minio_sync, audio_path, f"audios/{name_id}.mp3")
         logger.info(f'Audio uploaded to MinIO as audios/{name_id}.mp3')
         
-        # Clean up local video file
-        if os.path.exists(filepath):
-            os.remove(filepath)
     except Exception as e:
         logger.error(f'Error to processing video from {url}: {e}')
         raise e
@@ -134,6 +131,20 @@ async def upload_to_minio(filepath: str, object_name: str):
         await loop.run_in_executor(None, _upload_to_minio_sync, filepath, object_name)
     except S3Error as e:
         logger.error(f'Error uploading to MinIO: {e}')
+        raise e
+
+async def delete_to_minio(object_name: str):
+    try:
+        client = Minio(
+            settings.MINIO_ENDPOINT,
+            access_key=settings.MINIO_ROOT_USER,
+            secret_key=settings.MINIO_ROOT_PASSWORD,
+            secure=False
+        )
+        bucket_name = settings.MINIO_BUCKET
+        client.remove_object(bucket_name, f'temp_uploads/{object_name.split("/")[-1]}')
+    except S3Error as e:
+        logger.error(f'Error deleting object from MinIO: {e}')
         raise e
 
 @celery_app.task(name="process_video_task")
@@ -159,12 +170,22 @@ def process_video_task(transcription_id: str, video_url: str):
             {"$set": update_doc}
         )
 
+    async def update_video_url(url: str):
+        db = await get_db()
+        # Verify if URL is 'pending' before updating
+        transcription = await db.transcriptions.find_one({"_id": ObjectId(transcription_id)})
+        if transcription and transcription.get("video_url") == "pending":
+            await db.transcriptions.update_one(
+                {"_id": ObjectId(transcription_id)},
+                {"$set": {"video_url": url}}
+            )
+
     try:
         # Change status to 'pending'
         loop.run_until_complete(update_status('processing'))
 
         # Download video and convert to audio
-        loop.run_until_complete(download_video(video_url, video_path, transcription_id))
+        loop.run_until_complete(download_video(video_url, transcription_id))
         
         # Transcribe audio
         logger.info(f'Starting transcription for ID: {transcription_id}')
@@ -177,6 +198,7 @@ def process_video_task(transcription_id: str, video_url: str):
         # gc.collect()
 
         # Update status to 'completed'
+        loop.run_until_complete(update_video_url(f'http://{settings.MINIO_ENDPOINT}/{settings.MINIO_BUCKET}/audios/{transcription_id}.mp3'))
         loop.run_until_complete(update_status('completed', {"text": transcribed_text}))
 
         return { "status": "success", "id": transcription_id }
@@ -190,3 +212,7 @@ def process_video_task(transcription_id: str, video_url: str):
             if os.path.exists(path):
                 os.remove(path)
                 # logger.info(f'Cleaned up temporary files for ID: {transcription_id}')
+
+        # Delete audio/video temp files from MinIO
+        if video_url and settings.MINIO_ENDPOINT in video_url:
+            loop.run_until_complete(delete_to_minio(video_url))
