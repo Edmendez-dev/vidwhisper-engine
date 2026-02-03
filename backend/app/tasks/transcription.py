@@ -1,4 +1,3 @@
-import time
 import logging
 import asyncio
 import ffmpeg
@@ -12,7 +11,6 @@ from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorClient
 from app.core.celery_app import celery_app
 from app.core.config import settings
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -179,6 +177,13 @@ def process_video_task(transcription_id: str, video_url: str):
                 {"_id": ObjectId(transcription_id)},
                 {"$set": {"video_url": url}}
             )
+    async def set_backup_url(id: str):
+        db = await get_db()
+        backup_url = f'http://{settings.MINIO_ENDPOINT}/{settings.MINIO_BUCKET}/audios/{id}.mp3'
+        await db.transcriptions.update_one(
+            {"_id": ObjectId(id)},
+            {"$set": {"backup_url": backup_url}}
+        )
 
     try:
         # Change status to 'pending'
@@ -199,6 +204,7 @@ def process_video_task(transcription_id: str, video_url: str):
 
         # Update status to 'completed'
         loop.run_until_complete(update_video_url(f'http://{settings.MINIO_ENDPOINT}/{settings.MINIO_BUCKET}/audios/{transcription_id}.mp3'))
+        loop.run_until_complete(set_backup_url(transcription_id))
         loop.run_until_complete(update_status('completed', {"text": transcribed_text}))
 
         return { "status": "success", "id": transcription_id }

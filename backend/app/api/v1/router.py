@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, status, UploadFile, File
 from app.schemas.transcription import TranscriptionCreate, TranscriptionResponse
 from app.models.transcription import TranscriptionModel
 from app.tasks.transcription import process_video_task
@@ -24,6 +24,7 @@ async def create_transcription(payload: TranscriptionCreate):
     new_transcription = TranscriptionModel(
         video_url=str(payload.video_url),
         status="pending",
+        backup_url="pending"
     )
 
     # Save to database
@@ -41,6 +42,7 @@ async def create_transcription(payload: TranscriptionCreate):
         "id": str(result.inserted_id),
         "video_url": new_transcription.video_url,
         "status": new_transcription.status,
+        "backup_url": new_transcription.backup_url,
         "created_at": new_transcription.created_at
     }
 
@@ -49,7 +51,8 @@ async def create_transcription(payload: TranscriptionCreate):
 async def create_transcription_file(file: UploadFile = File(...)):
     new_transcription = TranscriptionModel(
         video_url="pending",
-        status="pending"
+        status="pending",
+        backup_url="pending"
     )
 
     # Save to database
@@ -88,5 +91,6 @@ async def create_transcription_file(file: UploadFile = File(...)):
         "id": str(result.inserted_id),
         "video_url": new_transcription.video_url,
         "status": new_transcription.status,
+        "backup_url": new_transcription.backup_url,
         "created_at": new_transcription.created_at
     }

@@ -4,10 +4,12 @@ from typing import Optional
 
 class TranscriptionCreate(BaseModel):
     video_url: HttpUrl
+    backup_url: HttpUrl
 
 class TranscriptionResponse(BaseModel):
     id: str
     video_url: str
     status: str
     text: Optional[str] = None
+    backup_url: str
     created_at: datetime
