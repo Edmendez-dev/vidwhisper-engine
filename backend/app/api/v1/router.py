@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, status, UploadFile, File
 from app.schemas.transcription import TranscriptionCreate, TranscriptionResponse
 from app.models.transcription import TranscriptionModel
@@ -94,3 +95,14 @@ async def create_transcription_file(file: UploadFile = File(...)):
         "backup_url": new_transcription.backup_url,
         "created_at": new_transcription.created_at
     }
+
+# Endpoint to get all transcriptions
+@router.get("/", response_model=List[TranscriptionResponse], status_code=status.HTTP_200_OK)
+async def get_all_transcriptions():
+    transcriptions_cursor = db_conn.db.transcriptions.find()
+    transcriptions = []
+    async for transcription in transcriptions_cursor:
+        transcription['id'] = str(transcription['_id'])
+        del transcription['_id']
+        transcriptions.append(TranscriptionResponse(**transcription))
+    return transcriptions
