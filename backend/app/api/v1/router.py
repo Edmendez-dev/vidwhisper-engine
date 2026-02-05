@@ -63,7 +63,7 @@ async def create_transcription_file(file: UploadFile = File(...)):
 
     # Create tmp directory if it doesn't exist
     os.makedirs('/app/tmp', exist_ok=True)
-    tmp_filename = f'{str(result.inserted_id)}_file.{file.filename.split(".")[-1]}'
+    tmp_filename = f'{str(result.inserted_id)}_file{os.path.splitext(file.filename)[1]}'
     tmp_filepath = f'/app/tmp/{tmp_filename}'
 
     with open(tmp_filepath, "wb") as f:
@@ -116,7 +116,7 @@ async def delete_transcription(transcription_id: str):
     if not transcription:
         return {"error": "Transcription not found"}
     
-    # Extract object name from backup_url
+    # Delete the associated backup file from MinIO and the transcription from the database
     try:
         client = Minio(
             settings.MINIO_ENDPOINT,
@@ -128,8 +128,8 @@ async def delete_transcription(transcription_id: str):
             settings.MINIO_BUCKET,
             f'audios/{transcription_id}.mp3'
         )
+        await db_conn.db.transcriptions.delete_one({"_id": ObjectId(transcription_id)})
     except S3Error as e:
-        logger.error(f'Error deleting backup from MinIO: {e}')
+        logger.error(f'Error deleting transcription: {e}')
         raise e
-    await db_conn.db.transcriptions.delete_one({"_id": ObjectId(transcription_id)})
     return {"message": "Transcription deleted successfully"}
