@@ -4,7 +4,6 @@ from typing import Optional
 
 class TranscriptionCreate(BaseModel):
     video_url: HttpUrl
-    backup_url: HttpUrl
 
 class TranscriptionResponse(BaseModel):
     id: str

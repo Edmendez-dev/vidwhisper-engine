@@ -7,6 +7,7 @@ from app.core.database import db_conn
 import logging
 import shutil
 import os
+from bson import ObjectId
 from minio import Minio
 from minio.error import S3Error
 from app.core.config import settings
@@ -106,3 +107,29 @@ async def get_all_transcriptions():
         del transcription['_id']
         transcriptions.append(TranscriptionResponse(**transcription))
     return transcriptions
+
+# Endpoint to delete a transcription by ID
+@router.delete("/{transcription_id}", status_code=status.HTTP_200_OK)
+async def delete_transcription(transcription_id: str):
+    # Get the transcription to find associated backup file
+    transcription =  await db_conn.db.transcriptions.find_one({"_id": ObjectId(transcription_id)})
+    if not transcription:
+        return {"error": "Transcription not found"}
+    
+    # Extract object name from backup_url
+    try:
+        client = Minio(
+            settings.MINIO_ENDPOINT,
+            access_key=settings.MINIO_ROOT_USER,
+            secret_key=settings.MINIO_ROOT_PASSWORD,
+            secure=False
+        )
+        client.remove_object(
+            settings.MINIO_BUCKET,
+            f'audios/{transcription_id}.mp3'
+        )
+    except S3Error as e:
+        logger.error(f'Error deleting backup from MinIO: {e}')
+        raise e
+    await db_conn.db.transcriptions.delete_one({"_id": ObjectId(transcription_id)})
+    return {"message": "Transcription deleted successfully"}
