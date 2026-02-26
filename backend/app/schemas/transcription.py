@@ -10,4 +10,5 @@ class TranscriptionResponse(BaseModel):
     video_url: str
     status: str
     text: Optional[str] = None
+    backup_url: str
     created_at: datetime
