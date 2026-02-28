@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
-
 // Components of VidWhisper
 import Header from "@/components/vidwhisper/header";
+import MainTranscription from "@/components/vidwhisper/mainTranscription";
 import FloatingHelp from "@/components/vidwhisper/help";
 
 export default function Home() {
@@ -19,6 +18,9 @@ export default function Home() {
       <div className="relative z-10 max-w-4xl mx-auto px-4 py-12 flex flex-col gap-12">
         {/* Header */}
         <Header />
+
+        {/* Main Transcription Component */}
+        <MainTranscription />
 
         {/* Floating Help Button */}
         <FloatingHelp />
