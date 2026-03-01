@@ -79,57 +79,6 @@ export default function MainTranscription() {
     setStatus("pending");
     setProgress(0);
     setResultText("");
-
-    // Crear la transcripción en el store
-    const transcriptionId = Date.now().toString();
-    const videoUrl =
-      inputMode === "url"
-        ? urlValue || "https://youtube.com/watch?v=example"
-        : (selectedFile?.name ?? "archivo_desconocido");
-
-    const newTranscription: Transcription = {
-      id: transcriptionId,
-      video_url: videoUrl,
-      status: "pending",
-      text: null,
-      backup_url: "",
-      created_at: new Date().toISOString(),
-    };
-
-    addTranscription(newTranscription);
-    setCurrentTranscriptionId(transcriptionId);
-
-    setTimeout(() => {
-      setStatus("processing");
-      updateTranscription(transcriptionId, { status: "processing" });
-    }, 1200);
-
-    progressInterval.current = setInterval(() => {
-      setProgress((p) => {
-        if (p >= 95) return p;
-        return p + Math.random() * 6;
-      });
-    }, 600);
-
-    // Simulate completion after ~6s
-    setTimeout(() => {
-      if (progressInterval.current) clearInterval(progressInterval.current);
-      setProgress(100);
-      setStatus("completed");
-
-      const transcriptionText =
-        "Esta es la transcripción simulada del video o archivo seleccionado. " +
-        "En un entorno real, aquí aparecería el texto completo extraído del audio, con marcas de tiempo y todos los detalles necesarios. " +
-        "VidWhisper utiliza modelos avanzados de reconocimiento de voz para ofrecerte resultados precisos y rápidos.";
-
-      setResultText(transcriptionText);
-
-      updateTranscription(transcriptionId, {
-        status: "completed",
-        text: transcriptionText,
-        backup_url: `backup-${transcriptionId}.txt`,
-      });
-    }, 6000);
   };
 
   const handleStop = () => {

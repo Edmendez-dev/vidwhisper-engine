@@ -16,6 +16,8 @@
     "radix-ui": "^1.4.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-h5-audio-player": "^3.10.1",
+    "sass": "^1.97.3",
     "tailwind-merge": "^3.5.0",
     "typeit-react": "^2.7.8",
     "zustand": "^5.0.11"

@@ -3,6 +3,7 @@
 // Components of VidWhisper
 import Header from "@/components/vidwhisper/header";
 import MainTranscription from "@/components/vidwhisper/mainTranscription";
+import TranscriptionHistory from "@/components/vidwhisper/transcriptionHistory";
 import FloatingHelp from "@/components/vidwhisper/help";
 
 export default function Home() {
@@ -21,6 +22,9 @@ export default function Home() {
 
         {/* Main Transcription Component */}
         <MainTranscription />
+
+        {/* Transcription History Component */}
+        <TranscriptionHistory />
 
         {/* Floating Help Button */}
         <FloatingHelp />
