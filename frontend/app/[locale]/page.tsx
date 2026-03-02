@@ -1,5 +1,3 @@
-"use client";
-
 // Components of VidWhisper
 import Header from "@/components/vidwhisper/header";
 import MainTranscription from "@/components/vidwhisper/mainTranscription";
