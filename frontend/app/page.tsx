@@ -5,6 +5,7 @@ import Header from "@/components/vidwhisper/header";
 import MainTranscription from "@/components/vidwhisper/mainTranscription";
 import TranscriptionHistory from "@/components/vidwhisper/transcriptionHistory";
 import FloatingHelp from "@/components/vidwhisper/help";
+import Footer from "@/components/vidwhisper/footer";
 
 export default function Home() {
   return (
@@ -28,6 +29,9 @@ export default function Home() {
 
         {/* Floating Help Button */}
         <FloatingHelp />
+
+        {/* Footer */}
+        <Footer />
       </div>
     </div>
   );
