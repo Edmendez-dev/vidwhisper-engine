@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { X, HelpCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function FloatingHelp() {
   const [isOpen, setIsOpen] = useState(false);
+  const t = useTranslations("Help");
 
   return (
     <>
@@ -25,12 +27,15 @@ export default function FloatingHelp() {
         <div className="fixed bottom-24 right-6 z-40 animate-in slide-in-from-bottom-4 fade-in duration-300 w-3/4 sm:w-fit">
           <div className="bg-white/10 border border-white/20 rounded-2xl rounded-tl-sm px-5 py-4 backdrop-blur-xl shadow-xl">
             <p className="text-white/90 text-sm leading-relaxed">
-              ¡Hola! ¿Necesitas{" "}
-              <span className="text-violet-400 font-semibold">ayuda</span>?
+              {t("title")}{" "}
+              <span className="text-violet-400 font-semibold">
+                {t("title2")}
+              </span>
+              ?
               <br />
               <br />
-              Pega el link de un video de YouTube o sube un archivo <br />
-              de audio/video y lo convierto a texto al instante.
+              {t("content_l1")} <br />
+              {t("content_l2")}
             </p>
           </div>
         </div>

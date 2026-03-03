@@ -2,5 +2,11 @@
   "Header": {
     "title": "VidWhisper Engine",
     "subtitle": "Convert audio and video to text with AI in seconds."
+  },
+  "Help": {
+    "title": "Hello! Do you need",
+    "title2": "help",
+    "content_l1": "Paste a YouTube video link or upload an",
+    "content_l2": "audio/video file and instantly convert it to text."
   }
 }
