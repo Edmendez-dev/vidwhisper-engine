@@ -8,5 +8,9 @@
     "title2": "help",
     "content_l1": "Paste a YouTube video link or upload an",
     "content_l2": "audio/video file and instantly convert it to text."
+  },
+  "Footer": {
+    "copyright": "VidWhisper Engine · Transcription with AI · ",
+    "version": "v1.0"
   }
 }

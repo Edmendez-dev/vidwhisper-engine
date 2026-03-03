@@ -8,5 +8,9 @@
     "title2": "ayuda",
     "content_l1": "Pega el link de un video de YouTube o sube un archivo de",
     "content_l2": "audio/video y lo convierto a texto al instante."
+  },
+  "Footer": {
+    "copyright": "VidWhisper Engine · Transcripción con IA · ",
+    "version": "v1.0"
   }
 }
