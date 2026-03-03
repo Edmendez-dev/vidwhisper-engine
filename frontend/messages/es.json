@@ -3,6 +3,29 @@
     "title": "VidWhisper Engine",
     "subtitle": "Convierte audio y video a texto con IA en segundos."
   },
+  "TranscriptionHistory": {
+    "title": "Historial de transcripciones",
+    "totalRecords": "registros",
+    "TableData": {
+      "fountain": "Fuente",
+      "type": "Tipo",
+      "state": "Estado",
+      "date": "Fecha",
+      "actions": "Acciones"
+    },
+    "noRecords": "No hay transcripciones aún. ¡Empieza arriba!",
+    "type": {
+      "youtube": "YouTube",
+      "file": "Archivo"
+    },
+    "status": {
+      "processing": "Procesando",
+      "completed": "Completado",
+      "failed": "Fallido"
+    },
+    "transcription": "Transcripción",
+    "audio": "Audio"
+  },
   "Help": {
     "title": "¡Hola! ¿Necesitas",
     "title2": "ayuda",

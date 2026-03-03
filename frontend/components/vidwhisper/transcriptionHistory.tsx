@@ -34,12 +34,15 @@ import {
 import AudioPlayer from "react-h5-audio-player";
 import "react-h5-audio-player/lib/styles.css";
 import "./audioPlayerOverrides.scss";
+import { useTranslations, useLocale } from "next-intl";
 
 export default function TranscriptionHistory() {
   const { transcriptions, deleteTranscription, loadTranscriptions } =
     useTranscriptionStore();
   const [viewingId, setViewingId] = useState<string | null>(null);
   const [audioId, setAudioId] = useState<string | null>(null);
+  const t = useTranslations("TranscriptionHistory");
+  const locale = useLocale();
 
   // Load transcriptions on mount
   useEffect(() => {
@@ -53,9 +56,10 @@ export default function TranscriptionHistory() {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  // Format date based on locale, showing both date and time
+  const formatDate = (dateString: string, locale: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("es-ES", {
+    return date.toLocaleDateString(locale === "es" ? "es-ES" : "en-US", {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -77,14 +81,14 @@ export default function TranscriptionHistory() {
         <div className="flex items-center gap-3">
           <Clock className="w-4 h-4 text-white/30" />
           <h2 className="text-sm font-medium text-white/50 uppercase tracking-widest">
-            Historial de transcripciones
+            {t("title")}
           </h2>
           <div className="flex-1 h-px bg-white/5" />
           <Badge
             variant="outline"
             className="text-white/30 border-white/10 text-xs"
           >
-            {transcriptions.length} registros
+            {transcriptions.length} {t("totalRecords")}
           </Badge>
         </div>
 
@@ -96,19 +100,19 @@ export default function TranscriptionHistory() {
                   #
                 </TableHead>
                 <TableHead className="text-white/30 text-xs font-medium uppercase tracking-wider">
-                  Fuente
+                  {t("TableData.fountain")}
                 </TableHead>
                 <TableHead className="text-white/30 text-xs font-medium uppercase tracking-wider">
-                  Tipo
+                  {t("TableData.type")}
                 </TableHead>
                 <TableHead className="text-white/30 text-xs font-medium uppercase tracking-wider">
-                  Estado
+                  {t("TableData.state")}
                 </TableHead>
                 <TableHead className="text-white/30 text-xs font-medium uppercase tracking-wider">
-                  Fecha
+                  {t("TableData.date")}
                 </TableHead>
                 <TableHead className="text-white/30 text-xs font-medium uppercase tracking-wider text-right">
-                  Acciones
+                  {t("TableData.actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -119,7 +123,7 @@ export default function TranscriptionHistory() {
                     colSpan={6}
                     className="text-center text-white/25 text-sm py-12"
                   >
-                    No hay transcripciones aún. ¡Empieza arriba! 🎙️
+                    {t("noRecords")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -158,29 +162,31 @@ export default function TranscriptionHistory() {
                               : "text-cyan-400 border-cyan-500/20 bg-cyan-500/5",
                           )}
                         >
-                          {sourceType === "youtube" ? "YouTube" : "Archivo"}
+                          {sourceType === "youtube"
+                            ? t("type.youtube")
+                            : t("type.file")}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         {isCompleted ? (
                           <div className="flex items-center gap-1.5 text-emerald-400 text-xs">
                             <CheckCircle2 className="w-3.5 h-3.5" />
-                            Completado
+                            {t("status.completed")}
                           </div>
                         ) : isFailed ? (
                           <div className="flex items-center gap-1.5 text-red-400 text-xs">
                             <XCircle className="w-3.5 h-3.5" />
-                            Fallido
+                            {t("status.failed")}
                           </div>
                         ) : (
                           <div className="flex items-center gap-1.5 text-yellow-400 text-xs">
                             <Clock className="w-3.5 h-3.5" />
-                            {transcription.status}
+                            {t(`status.${transcription.status}`)}
                           </div>
                         )}
                       </TableCell>
                       <TableCell className="text-white/35 text-xs">
-                        {formatDate(transcription.created_at)}
+                        {formatDate(transcription.created_at, locale)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
@@ -254,7 +260,7 @@ export default function TranscriptionHistory() {
                   <div className="flex items-center gap-2">
                     <FileText className="w-3.5 h-3.5 text-white/30" />
                     <span className="text-xs text-white/35 uppercase tracking-wider font-medium">
-                      Transcripción #{transcription.id} —{" "}
+                      {t("transcription")} #{transcription.id} —{" "}
                       {truncate(transcription.video_url, 50)}
                     </span>
                   </div>
@@ -279,7 +285,7 @@ export default function TranscriptionHistory() {
                   <div className="flex items-center gap-2 mb-3">
                     <Play className="w-3.5 h-3.5 text-white/30" />
                     <span className="text-xs text-white/35 uppercase tracking-wider font-medium">
-                      Audio #{transcription.id}
+                      {t("audio")} #{transcription.id}
                     </span>
                   </div>
                   <AudioPlayer
