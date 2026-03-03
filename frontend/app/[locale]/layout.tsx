@@ -4,11 +4,17 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 
+const locales = ["en", "es"];
+
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+export function generateStaticParams() {
+  return [{ locale: "en" }, { locale: "es" }];
+}
 
 export default async function RootLayout({
   children,
@@ -18,7 +24,6 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const locales = ["en", "es"];
   if (!locales.includes(locale)) notFound();
 
   const messages = await getMessages();
