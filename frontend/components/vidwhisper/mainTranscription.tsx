@@ -25,6 +25,7 @@ import {
   useTranscriptionStore,
   type Transcription,
 } from "@/stores/transcriptionStore";
+import { useTranslations } from "next-intl";
 
 type InputMode = "url" | "file";
 type TranscriptionStatus =
@@ -54,6 +55,7 @@ export default function MainTranscription() {
   >(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const progressInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const t = useTranslations("MainTranscription");
 
   // ── Drag & Drop ──
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -108,9 +110,11 @@ export default function MainTranscription() {
       <Card className="bg-white/3 border border-white/10 backdrop-blur-sm shadow-2xl rounded-3xl overflow-hidden">
         <CardHeader className="pt-2 px-6 text-center">
           <CardTitle className="text-white/80 text-md font-medium uppercase tracking-widest">
-            ¿Qué vamos a{" "}
-            <span className="text-violet-400 font-semibold">transcribir</span>{" "}
-            hoy?
+            {t("title")}{" "}
+            <span className="text-violet-400 font-semibold">
+              {t("title_span")}
+            </span>{" "}
+            {t("title2")}
           </CardTitle>
         </CardHeader>
 
@@ -131,7 +135,7 @@ export default function MainTranscription() {
               )}
             >
               <Link2 className="w-3.5 h-3.5" />
-              Link
+              {t("inputType.link")}
             </button>
             <button
               onClick={() => setInputMode("file")}
@@ -144,7 +148,7 @@ export default function MainTranscription() {
               )}
             >
               <FileAudio className="w-3.5 h-3.5" />
-              Archivo
+              {t("inputType.file")}
             </button>
           </div>
 
@@ -199,9 +203,7 @@ export default function MainTranscription() {
                       {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                     </p>
                   </div>
-                  <p className="text-white/30 text-xs">
-                    Haz clic o arrastra otro archivo para cambiar
-                  </p>
+                  <p className="text-white/30 text-xs">{t("changeFile")}</p>
                 </>
               ) : (
                 <>
@@ -210,10 +212,10 @@ export default function MainTranscription() {
                   </div>
                   <div className="text-center">
                     <p className="text-white/70 font-medium text-sm">
-                      Arrastra tu archivo aquí
+                      {t("textDrag1")}
                     </p>
                     <p className="text-white/35 text-xs mt-1">
-                      o haz clic para seleccionar
+                      {t("textDrag2")}
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -240,7 +242,7 @@ export default function MainTranscription() {
                   <span>
                     {status === "pending"
                       ? "Iniciando transcripción…"
-                      : "Procesando audio…"}
+                      : "Procesando…"}
                   </span>
                 </div>
                 <span className="text-violet-400 font-medium">
@@ -258,8 +260,7 @@ export default function MainTranscription() {
             <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
               <XCircle className="w-5 h-5 text-red-400 shrink-0" />
               <p className="text-red-300 text-sm flex-1">
-                La transcripción falló. Verifica el link o el archivo e intenta
-                de nuevo.
+                {t("failedMessage")}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -269,7 +270,7 @@ export default function MainTranscription() {
                   className="text-red-300 hover:text-red-200 hover:bg-red-500/10 h-7 px-2 text-xs"
                 >
                   <RefreshCw className="w-3.5 h-3.5 mr-1" />
-                  Reintentar
+                  {t("retry")}
                 </Button>
                 <Button
                   size="sm"
@@ -287,7 +288,7 @@ export default function MainTranscription() {
             <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3">
               <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
               <p className="text-emerald-300 text-sm flex-1">
-                Transcripción completada
+                {t("completedMessage")}
               </p>
               <Button
                 size="sm"
@@ -295,7 +296,7 @@ export default function MainTranscription() {
                 className="h-7 px-3 text-xs bg-emerald-600/80 hover:bg-emerald-600 text-white border-0"
               >
                 <Eye className="w-3.5 h-3.5 mr-1" />
-                Ver texto
+                {t("viewText")}
               </Button>
               <Button
                 size="sm"
@@ -314,7 +315,7 @@ export default function MainTranscription() {
               <div className="flex items-center gap-2 px-1">
                 <FileText className="w-3.5 h-3.5 text-white/30" />
                 <span className="text-xs text-white/40 font-medium uppercase tracking-wider">
-                  Transcripción
+                  {t("transcriptionResult")}
                 </span>
               </div>
               <Textarea
@@ -333,7 +334,7 @@ export default function MainTranscription() {
                 className="flex-1 h-12 rounded-xl bg-red-600/80 hover:bg-red-600 text-white border-0 font-medium text-sm gap-2 transition-all"
               >
                 <StopCircle className="w-4 h-4" />
-                Detener transcripción
+                {t("stopTranscription")}
               </Button>
             ) : (
               <Button
@@ -346,7 +347,7 @@ export default function MainTranscription() {
                     : "bg-white/5 text-white/25 shadow-none cursor-not-allowed",
                 )}
               >
-                Transcribir
+                {t("transcribe")}
               </Button>
             )}
           </div>

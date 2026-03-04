@@ -3,6 +3,25 @@
     "title": "VidWhisper Engine",
     "subtitle": "Convierte audio y video a texto con IA en segundos."
   },
+  "MainTranscription": {
+    "title": "¿Qué vamos a",
+    "title2": "hoy?",
+    "title_span": "transcribir",
+    "inputType": {
+      "link": "Enlace",
+      "file": "Archivo"
+    },
+    "changeFile": "Haz clic o arrastra otro archivo para cambiar",
+    "textDrag1": "Arrastra tu archivo aquí",
+    "textDrag2": "o haz clic para seleccionar",
+    "failedMessage": "La transcripción falló. Verifica el link o el archivo e intenta de nuevo.",
+    "Retry": "Reintentar",
+    "completedMessage": "Transcripción completada",
+    "viewText": "Ver texto",
+    "transcriptionResult": "Transcripción",
+    "stopTranscription": "Detener transcripción",
+    "transcribe": "Transcribir"
+  },
   "TranscriptionHistory": {
     "title": "Historial de transcripciones",
     "totalRecords": "registros",
