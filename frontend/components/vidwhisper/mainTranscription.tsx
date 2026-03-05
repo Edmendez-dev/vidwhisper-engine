@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
   Link2,
   FileAudio,
@@ -21,10 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import {
-  useTranscriptionStore,
-  type Transcription,
-} from "@/stores/transcriptionStore";
+import { useTranscriptionStore } from "@/stores/transcriptionStore";
 import { useTranslations } from "next-intl";
 
 type InputMode = "url" | "file";
@@ -41,6 +38,8 @@ export default function MainTranscription() {
     addTranscription,
     updateTranscription,
     deleteTranscription,
+    submitTranscription,
+    pollTranscriptionStatus,
   } = useTranscriptionStore();
 
   const [inputMode, setInputMode] = useState<InputMode>("url");
@@ -54,8 +53,17 @@ export default function MainTranscription() {
     string | null
   >(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const progressInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollingCleanup = useRef<(() => void) | null>(null);
   const t = useTranslations("MainTranscription");
+
+  // Limpiar polling cuando el componente se desmonte
+  useEffect(() => {
+    return () => {
+      if (pollingCleanup.current) {
+        pollingCleanup.current();
+      }
+    };
+  }, []);
 
   // ── Drag & Drop ──
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -77,19 +85,66 @@ export default function MainTranscription() {
     if (file) setSelectedFile(file);
   };
 
-  const handleTranscribe = () => {
+  const handleTranscribe = async () => {
     setStatus("pending");
     setProgress(0);
     setResultText("");
+
+    try {
+      const newTranscription = await submitTranscription(
+        inputMode === "url"
+          ? { mode: "url", url: urlValue }
+          : { mode: "file", file: selectedFile! },
+      );
+
+      setCurrentTranscriptionId(newTranscription.id);
+      setStatus("processing");
+      setProgress(10);
+
+      // Initiar polling para actualizar el estado de la transcripción
+      pollingCleanup.current = pollTranscriptionStatus(
+        newTranscription.backendId,
+        (updatedTranscription) => {
+          // Update local state based on the updated transcription from the store
+          const apiStatus = updatedTranscription.status;
+
+          if (apiStatus === "pending") {
+            setStatus("pending");
+            setProgress(10);
+          } else if (apiStatus === "processing") {
+            setStatus("processing");
+            setProgress(50);
+          } else if (apiStatus === "completed") {
+            setStatus("completed");
+            setProgress(100);
+            setResultText(updatedTranscription.text || "");
+          } else if (apiStatus === "failed") {
+            setStatus("failed");
+            setProgress(0);
+          }
+        },
+      );
+    } catch (error) {
+      console.error("Error:", error);
+      setStatus("failed");
+      setProgress(0);
+    }
   };
 
   const handleStop = () => {
-    if (progressInterval.current) clearInterval(progressInterval.current);
+    if (pollingCleanup.current) {
+      pollingCleanup.current();
+      pollingCleanup.current = null;
+    }
     setStatus("idle");
     setProgress(0);
   };
 
   const handleRetry = () => {
+    if (pollingCleanup.current) {
+      pollingCleanup.current();
+      pollingCleanup.current = null;
+    }
     setStatus("idle");
     setProgress(0);
     setResultText("");

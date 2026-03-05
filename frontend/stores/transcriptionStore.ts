@@ -31,6 +31,13 @@ interface TranscriptionStore {
   clearAll: () => void;
   loadTranscriptions: (apiUrl?: string) => Promise<void>;
   setTranscriptions: (transcriptions: Transcription[]) => void;
+  submitTranscription: (
+    input: { mode: "url"; url: string } | { mode: "file"; file: File },
+  ) => Promise<Transcription>;
+  pollTranscriptionStatus: (
+    backendId: string,
+    onUpdate: (transcription: Transcription) => void,
+  ) => () => void;
 }
 
 export const useTranscriptionStore = create<TranscriptionStore>()(
@@ -100,6 +107,112 @@ export const useTranscriptionStore = create<TranscriptionStore>()(
         } catch (error) {
           console.error("Error loading transcriptions:", error);
         }
+      },
+
+      submitTranscription: async (input) => {
+        try {
+          let response;
+
+          if (input.mode === "url") {
+            response = await fetch(
+              "http://localhost:8000/api/v1/transcriptions/",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  video_url: input.url,
+                }),
+              },
+            );
+          } else {
+            const formData = new FormData();
+            formData.append("file", input.file);
+
+            response = await fetch(
+              "http://localhost:8000/api/v1/transcriptions/file",
+              {
+                method: "POST",
+                body: formData,
+              },
+            );
+          }
+
+          if (!response.ok) {
+            throw new Error("Error al enviar la transcripción");
+          }
+
+          const data = await response.json();
+
+          // Add to store
+          const state = get();
+          const newTranscription = state.addTranscription({
+            id: "",
+            backendId: data.id,
+            video_url: data.video_url,
+            status: data.status,
+            text: data.text,
+            backup_url: data.backup_url,
+            created_at: data.created_at,
+          });
+
+          return newTranscription;
+        } catch (error) {
+          console.error("Error submitting transcription:", error);
+          throw error;
+        }
+      },
+
+      pollTranscriptionStatus: (backendId, onUpdate) => {
+        const intervalId = setInterval(async () => {
+          try {
+            const response = await fetch(
+              `http://localhost:8000/api/v1/transcriptions/${backendId}`,
+            );
+
+            if (!response.ok) {
+              throw new Error("Error al obtener estado de transcripción");
+            }
+
+            const data = await response.json();
+
+            // Search for the transcription in the store using backendId
+            const state = get();
+            const transcription = state.transcriptions.find(
+              (t) => t.backendId === backendId,
+            );
+
+            if (transcription) {
+              // Update the transcription in the store
+              state.updateTranscription(transcription.id, {
+                status: data.status,
+                text: data.text,
+                video_url: data.video_url,
+                backup_url: data.backup_url,
+              });
+
+              // Call the onUpdate callback with the updated transcription
+              onUpdate({
+                ...transcription,
+                status: data.status,
+                text: data.text,
+                video_url: data.video_url,
+                backup_url: data.backup_url,
+              });
+
+              // if the transcription is completed or failed, stop polling
+              if (data.status === "completed" || data.status === "failed") {
+                clearInterval(intervalId);
+              }
+            }
+          } catch (error) {
+            console.error("Error polling transcription status:", error);
+          }
+        }, 3000); // Poll every 3 seconds
+
+        // Return a function to clear the interval when the component unmounts or when polling should stop
+        return () => clearInterval(intervalId);
       },
     }),
     {
