@@ -17,6 +17,17 @@
     "failedMessage": "The transcription failed. Please check the link or file and try again.",
     "Retry": "Retry",
     "completedMessage": "Transcription completed",
+    "status": {
+      "pending": "pending",
+      "processing": "processing",
+      "downloading": "downloading",
+      "convertingToAudio": "converting to audio",
+      "uploading": "uploading",
+      "transcribing": "transcribing",
+      "finalizing": "finalizing",
+      "completed": "completed",
+      "failed": "failed"
+    },
     "viewText": "View text",
     "transcriptionResult": "Transcription",
     "stopTranscription": "Stop transcription",
@@ -38,7 +49,13 @@
       "file": "File"
     },
     "status": {
+      "pending": "Pending",
       "processing": "Processing",
+      "downloading": "Downloading",
+      "convertingToAudio": "Converting to audio",
+      "uploading": "Uploading",
+      "transcribing": "Transcribing",
+      "finalizing": "Finalizing",
       "completed": "Completed",
       "failed": "Failed"
     },

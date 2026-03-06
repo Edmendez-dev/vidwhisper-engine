@@ -6,6 +6,7 @@ export interface Transcription {
   backendId: string; // ObjectId del backend
   video_url: string;
   status: string;
+  progress: number;
   text?: string | null;
   backup_url: string;
   created_at: string;
@@ -94,6 +95,7 @@ export const useTranscriptionStore = create<TranscriptionStore>()(
               backendId: item.id, // ObjectId original
               video_url: item.video_url,
               status: item.status,
+              progress: item.progress,
               text: item.text,
               backup_url: item.backup_url,
               created_at: item.created_at,
@@ -152,6 +154,7 @@ export const useTranscriptionStore = create<TranscriptionStore>()(
             backendId: data.id,
             video_url: data.video_url,
             status: data.status,
+            progress: data.progress,
             text: data.text,
             backup_url: data.backup_url,
             created_at: data.created_at,
@@ -187,6 +190,7 @@ export const useTranscriptionStore = create<TranscriptionStore>()(
               // Update the transcription in the store
               state.updateTranscription(transcription.id, {
                 status: data.status,
+                progress: data.progress,
                 text: data.text,
                 video_url: data.video_url,
                 backup_url: data.backup_url,
@@ -196,6 +200,7 @@ export const useTranscriptionStore = create<TranscriptionStore>()(
               onUpdate({
                 ...transcription,
                 status: data.status,
+                progress: data.progress,
                 text: data.text,
                 video_url: data.video_url,
                 backup_url: data.backup_url,
@@ -209,7 +214,7 @@ export const useTranscriptionStore = create<TranscriptionStore>()(
           } catch (error) {
             console.error("Error polling transcription status:", error);
           }
-        }, 3000); // Poll every 3 seconds
+        }, 2000); // Poll every 2 seconds
 
         // Return a function to clear the interval when the component unmounts or when polling should stop
         return () => clearInterval(intervalId);

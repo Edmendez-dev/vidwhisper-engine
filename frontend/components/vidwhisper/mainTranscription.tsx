@@ -29,6 +29,11 @@ type TranscriptionStatus =
   | "idle"
   | "pending"
   | "processing"
+  | "downloading"
+  | "convertingToAudio"
+  | "uploading"
+  | "transcribing"
+  | "finalizing"
   | "completed"
   | "failed";
 
@@ -47,6 +52,7 @@ export default function MainTranscription() {
   const [dragOver, setDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [status, setStatus] = useState<TranscriptionStatus>("idle");
+  const [statusText, setStatusText] = useState("");
   const [progress, setProgress] = useState(0);
   const [resultText, setResultText] = useState("");
   const [currentTranscriptionId, setCurrentTranscriptionId] = useState<
@@ -56,7 +62,6 @@ export default function MainTranscription() {
   const pollingCleanup = useRef<(() => void) | null>(null);
   const t = useTranslations("MainTranscription");
 
-  // Limpiar polling cuando el componente se desmonte
   useEffect(() => {
     return () => {
       if (pollingCleanup.current) {
@@ -87,6 +92,7 @@ export default function MainTranscription() {
 
   const handleTranscribe = async () => {
     setStatus("pending");
+    setStatusText(t("status.pending"));
     setProgress(0);
     setResultText("");
 
@@ -99,34 +105,55 @@ export default function MainTranscription() {
 
       setCurrentTranscriptionId(newTranscription.id);
       setStatus("processing");
+      setStatusText(t("status.processing"));
       setProgress(10);
 
-      // Initiar polling para actualizar el estado de la transcripción
+      // Initial polling setup
       pollingCleanup.current = pollTranscriptionStatus(
         newTranscription.backendId,
         (updatedTranscription) => {
           // Update local state based on the updated transcription from the store
           const apiStatus = updatedTranscription.status;
 
-          if (apiStatus === "pending") {
-            setStatus("pending");
-            setProgress(10);
-          } else if (apiStatus === "processing") {
-            setStatus("processing");
-            setProgress(50);
-          } else if (apiStatus === "completed") {
-            setStatus("completed");
-            setProgress(100);
-            setResultText(updatedTranscription.text || "");
-          } else if (apiStatus === "failed") {
-            setStatus("failed");
-            setProgress(0);
+          const statusMapping: Record<string, TranscriptionStatus> = {
+            pending: "pending",
+            processing: "processing",
+            downloading: "processing",
+            "converting to audio": "processing",
+            uploading: "processing",
+            transcribing: "processing",
+            finalizing: "processing",
+            completed: "completed",
+            failed: "failed",
+          };
+
+          const mappedStatus = statusMapping[apiStatus] || "processing";
+          setStatus(mappedStatus);
+
+          const statusTextMapping: Record<string, string> = {
+            pending: t("status.pending"),
+            processing: t("status.processing"),
+            downloading: t("status.downloading"),
+            "converting to audio": t("status.convertingToAudio"),
+            uploading: t("status.uploading"),
+            transcribing: t("status.transcribing"),
+            finalizing: t("status.finalizing"),
+            completed: t("status.completed"),
+            failed: t("status.failed"),
+          };
+          setStatusText(statusTextMapping[apiStatus] || t("status.processing"));
+
+          setProgress(updatedTranscription.progress);
+
+          if (apiStatus === "completed" && updatedTranscription.text) {
+            setResultText(updatedTranscription.text);
           }
         },
       );
     } catch (error) {
       console.error("Error:", error);
       setStatus("failed");
+      setResultText(t("status.failed"));
       setProgress(0);
     }
   };
@@ -294,11 +321,7 @@ export default function MainTranscription() {
               <div className="flex items-center justify-between text-xs text-white/50">
                 <div className="flex items-center gap-2">
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-violet-400" />
-                  <span>
-                    {status === "pending"
-                      ? "Iniciando transcripción…"
-                      : "Procesando…"}
-                  </span>
+                  <span>{statusText}</span>
                 </div>
                 <span className="text-violet-400 font-medium">
                   {Math.round(progress)}%
