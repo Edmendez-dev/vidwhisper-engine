@@ -60,7 +60,14 @@
       "failed": "Failed"
     },
     "transcription": "Transcription",
-    "audio": "Audio"
+    "audio": "Audio",
+    "dialog": {
+      "title": "Are you absolutely sure?",
+      "description": "This action cannot be undone. This will permanently delete the transcription.",
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "deleteSuccess": "Transcription deleted successfully"
+    }
   },
   "Help": {
     "title": "Hello! Do you need",

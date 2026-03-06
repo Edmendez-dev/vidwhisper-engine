@@ -27,7 +27,7 @@ interface TranscriptionStore {
   nextId: number; // Contador para IDs simples
   addTranscription: (transcription: Transcription) => Transcription;
   updateTranscription: (id: string, updates: Partial<Transcription>) => void;
-  deleteTranscription: (id: string) => void;
+  deleteTranscription: (id: string) => Promise<void>;
   getTranscription: (id: string) => Transcription | undefined;
   clearAll: () => void;
   loadTranscriptions: (apiUrl?: string) => Promise<void>;
@@ -65,10 +65,36 @@ export const useTranscriptionStore = create<TranscriptionStore>()(
           ),
         })),
 
-      deleteTranscription: (id) =>
-        set((state) => ({
-          transcriptions: state.transcriptions.filter((t) => t.id !== id),
-        })),
+      deleteTranscription: async (id) => {
+        try {
+          const state = get();
+          const transcription = state.transcriptions.find((t) => t.id === id);
+
+          if (!transcription) {
+            throw new Error("Transcription not found");
+          }
+
+          // Delete from backend using backendId
+          const response = await fetch(
+            `http://localhost:8000/api/v1/transcriptions/${transcription.backendId}`,
+            {
+              method: "DELETE",
+            },
+          );
+
+          if (!response.ok) {
+            throw new Error("Error al eliminar la transcripción");
+          }
+
+          // Delete from local store if backend deletion was successful
+          set((state) => ({
+            transcriptions: state.transcriptions.filter((t) => t.id !== id),
+          }));
+        } catch (error) {
+          console.error("Error deleting transcription:", error);
+          throw error;
+        }
+      },
 
       getTranscription: (id) => {
         return get().transcriptions.find((t) => t.id === id);

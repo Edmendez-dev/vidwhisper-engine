@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
   useTranscriptionStore,
@@ -35,6 +36,17 @@ import AudioPlayer from "react-h5-audio-player";
 import "react-h5-audio-player/lib/styles.css";
 import "./audioPlayerOverrides.scss";
 import { useTranslations, useLocale } from "next-intl";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function TranscriptionHistory() {
   const { transcriptions, deleteTranscription, loadTranscriptions } =
@@ -49,10 +61,21 @@ export default function TranscriptionHistory() {
     loadTranscriptions();
   }, []);
 
-  const handleDelete = (id: string) => {
-    deleteTranscription(id);
-    if (viewingId === id) {
-      setViewingId(null);
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteTranscription(id);
+      if (viewingId === id) {
+        setViewingId(null);
+      }
+      if (audioId === id) {
+        setAudioId(null);
+      }
+      toast.success(t("dialog.deleteSuccess"), { position: "bottom-center" });
+    } catch (error) {
+      console.error("Error deleting transcription:", error);
+      toast.error("Error deleting transcription", {
+        position: "bottom-center",
+      });
     }
   };
 
@@ -231,14 +254,38 @@ export default function TranscriptionHistory() {
                               <RefreshCw className="w-3.5 h-3.5" />
                             </Button>
                           )}
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleDelete(transcription.id)}
-                            className="w-7 h-7 text-white/30 hover:text-red-400 hover:bg-red-500/10"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="w-7 h-7 text-white/30 hover:text-red-400 hover:bg-red-500/10"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  {t("dialog.title")}
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {t("dialog.description")}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="text-white/30 hover:text-cyan-400 hover:bg-cyan-500/10">
+                                  {t("dialog.cancel")}
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  className="text-white bg-red-500 hover:bg-red-700"
+                                  onClick={() => handleDelete(transcription.id)}
+                                >
+                                  {t("dialog.confirm")}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </TableCell>
                     </TableRow>

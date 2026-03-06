@@ -60,7 +60,14 @@
       "failed": "Fallido"
     },
     "transcription": "Transcripción",
-    "audio": "Audio"
+    "audio": "Audio",
+    "dialog": {
+      "title": "¿Estás completamente seguro?",
+      "description": "Esta acción no se puede deshacer. Eliminará permanentemente la transcripción.",
+      "cancel": "Cancelar",
+      "confirm": "Eliminar",
+      "deleteSuccess": "Transcripción eliminada correctamente"
+    }
   },
   "Help": {
     "title": "¡Hola! ¿Necesitas",
