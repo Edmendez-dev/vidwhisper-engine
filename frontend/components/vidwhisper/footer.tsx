@@ -12,7 +12,7 @@ export default function Footer() {
 
   return (
     <>
-      <footer className="flex items-center justify-center flex-col text-white/20 text-xs pb-4 gap-1">
+      <footer className="flex items-center justify-center flex-col text-white/20 text-xs pb-6 sm:pb-4 gap-1 px-4 text-center">
         <div>
           {t("copyright")} &copy; {getCurrentYear()}{" "}
         </div>
