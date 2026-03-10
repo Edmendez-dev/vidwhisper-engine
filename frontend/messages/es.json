@@ -1,4 +1,8 @@
 {
+  "App": {
+    "title": "VidWhisper Engine",
+    "description": "Transcripción de video y audio impulsada por IA"
+  },
   "Header": {
     "title": "VidWhisper Engine",
     "subtitle": "Convierte audio y video a texto con IA en segundos."

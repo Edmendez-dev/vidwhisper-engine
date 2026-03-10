@@ -1,4 +1,8 @@
 {
+  "App": {
+    "title": "VidWhisper Engine",
+    "description": "AI-powered video and audio transcription"
+  },
   "Header": {
     "title": "VidWhisper Engine",
     "subtitle": "Convert audio and video to text with AI in seconds."

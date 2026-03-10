@@ -1,7 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
+import { getMessages, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -15,6 +15,20 @@ const geistMono = Geist_Mono({
 
 export function generateStaticParams() {
   return [{ locale: "en" }, { locale: "es" }];
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "App" });
+
+  return {
+    title: t("title"),
+    description: t("description"),
+  };
 }
 
 export default async function RootLayout({
