@@ -1,0 +1,57 @@
+// Colores personalizados para el tema oscuro
+$rhap_theme-color: #22d3ee !default;
+$rhap_background-color: rgba(255, 255, 255, 0.05) !default;
+$rhap_bar-color: rgba(255, 255, 255, 0.1) !default;
+$rhap_time-color: rgba(255, 255, 255, 0.6) !default;
+
+// Overrides styles for react-h5-audio-player
+.rhap_container {
+  background-color: $rhap_background-color !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: none !important;
+  padding: 1rem !important;
+
+  // BTN
+  .rhap_button-clear {
+    color: rgba(255, 255, 255, 0.4) !important;
+
+    &:hover {
+      color: $rhap_theme-color !important;
+    }
+  }
+
+  // Progress bar
+  .rhap_progress-bar {
+    background-color: $rhap_bar-color !important;
+  }
+
+  .rhap_progress-filled,
+  .rhap_progress-indicator {
+    background-color: $rhap_theme-color !important;
+  }
+
+  // Control of volume
+  .rhap_volume-bar {
+    background-color: $rhap_bar-color !important;
+  }
+
+  .rhap_volume-filled,
+  .rhap_volume-indicator {
+    background-color: $rhap_theme-color !important;
+  }
+
+  // Time
+  .rhap_time {
+    color: $rhap_time-color !important;
+    font-size: 0.75rem !important;
+  }
+
+  // Btn play
+  .rhap_main-controls-button {
+    color: rgba(255, 255, 255, 0.5) !important;
+
+    &:hover {
+      color: $rhap_theme-color !important;
+    }
+  }
+}

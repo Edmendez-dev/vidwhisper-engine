@@ -1,0 +1,58 @@
+import { Geist, Geist_Mono } from "next/font/google";
+import "../globals.css";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages, getTranslations } from "next-intl/server";
+import { notFound } from "next/navigation";
+import { Toaster } from "@/components/ui/sonner";
+
+const locales = ["en", "es"];
+
+const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export function generateStaticParams() {
+  return [{ locale: "en" }, { locale: "es" }];
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "App" });
+
+  return {
+    title: t("title"),
+    description: t("description"),
+  };
+}
+
+export default async function RootLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  if (!locales.includes(locale)) notFound();
+
+  const messages = await getMessages();
+
+  return (
+    <html lang={locale} className="dark">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <NextIntlClientProvider messages={messages} locale={locale}>
+          {children}
+        </NextIntlClientProvider>
+        <Toaster />
+      </body>
+    </html>
+  );
+}

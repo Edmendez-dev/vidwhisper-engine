@@ -1,0 +1,86 @@
+{
+  "App": {
+    "title": "VidWhisper Engine",
+    "description": "AI-powered video and audio transcription"
+  },
+  "Header": {
+    "title": "VidWhisper Engine",
+    "subtitle": "Convert audio and video to text with AI in seconds."
+  },
+  "MainTranscription": {
+    "title": "What are we going to",
+    "title2": "today?",
+    "title_span": "transcribe",
+    "inputType": {
+      "link": "Link",
+      "file": "File"
+    },
+    "changeFile": "Click or drag another file to switch.",
+    "textDrag1": "Drag your file here",
+    "textDrag2": "or click to select",
+    "failedMessage": "The transcription failed. Please check the link or file and try again.",
+    "Retry": "Retry",
+    "completedMessage": "Transcription completed",
+    "status": {
+      "pending": "pending",
+      "processing": "processing",
+      "downloading": "downloading",
+      "convertingToAudio": "converting to audio",
+      "uploading": "uploading",
+      "transcribing": "transcribing",
+      "finalizing": "finalizing",
+      "completed": "completed",
+      "failed": "failed"
+    },
+    "viewText": "View text",
+    "transcriptionResult": "Transcription",
+    "stopTranscription": "Stop transcription",
+    "transcribe": "Transcribe"
+  },
+  "TranscriptionHistory": {
+    "title": "Transcript history",
+    "totalRecords": "records",
+    "TableData": {
+      "fountain": "Fountain",
+      "type": "Type",
+      "state": "State",
+      "date": "Date",
+      "actions": "Actions"
+    },
+    "noRecords": "There are no transcripts yet. Start at the top!",
+    "type": {
+      "youtube": "YouTube",
+      "file": "File"
+    },
+    "status": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "downloading": "Downloading",
+      "convertingToAudio": "Converting to audio",
+      "uploading": "Uploading",
+      "transcribing": "Transcribing",
+      "finalizing": "Finalizing",
+      "completed": "Completed",
+      "failed": "Failed"
+    },
+    "transcription": "Transcription",
+    "audio": "Audio",
+    "dialog": {
+      "title": "Are you absolutely sure?",
+      "description": "This action cannot be undone. This will permanently delete the transcription.",
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "deleteSuccess": "Transcription deleted successfully"
+    }
+  },
+  "Help": {
+    "title": "Hello! Do you need",
+    "title2": "help",
+    "content_l1": "Paste a YouTube video link or upload an",
+    "content_l2": "audio/video file and instantly convert it to text."
+  },
+  "Footer": {
+    "copyright": "VidWhisper Engine · Transcription with AI · ",
+    "version": "v1.0"
+  }
+}
