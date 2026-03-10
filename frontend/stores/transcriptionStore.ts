@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export interface Transcription {
-  id: string; // ID simple (1, 2, 3, etc.)
+  id: string;
   backendId: string; // ObjectId del backend
   video_url: string;
   status: string;
@@ -12,7 +12,7 @@ export interface Transcription {
   created_at: string;
 }
 
-// Helper para determinar el tipo de fuente
+// Helper for determining source type based on URL
 export const getSourceType = (videoUrl: string): "youtube" | "file" => {
   const lowerUrl = videoUrl.toLowerCase();
   return lowerUrl.includes("youtube") ||
@@ -24,7 +24,7 @@ export const getSourceType = (videoUrl: string): "youtube" | "file" => {
 
 interface TranscriptionStore {
   transcriptions: Transcription[];
-  nextId: number; // Contador para IDs simples
+  nextId: number;
   addTranscription: (transcription: Transcription) => Transcription;
   updateTranscription: (id: string, updates: Partial<Transcription>) => void;
   deleteTranscription: (id: string) => Promise<void>;
@@ -114,11 +114,11 @@ export const useTranscriptionStore = create<TranscriptionStore>()(
 
           const data = await response.json();
 
-          // Mapear las transcripciones del backend a nuestro formato con IDs simples
+          // Map the backend data to the Transcription interface, assigning simple IDs based on index
           const mappedTranscriptions: Transcription[] = data.map(
             (item: any, index: number) => ({
-              id: (index + 1).toString(), // ID simple
-              backendId: item.id, // ObjectId original
+              id: (index + 1).toString(),
+              backendId: item.id,
               video_url: item.video_url,
               status: item.status,
               progress: item.progress,

@@ -405,7 +405,7 @@ export default function TranscriptionHistory() {
             </Table>
           </div>
 
-          {/* Previews desktop — fuera del scroll */}
+          {/* Previews desktop — Out of ScrollBar */}
           {transcriptions.map((transcription) => (
             <PreviewSection
               key={`preview-${transcription.id}`}
