@@ -21,7 +21,7 @@ class PyObjectId(ObjectId):
 class TranscriptionModel(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     video_url: str
-    status: str = "pending" # e.g., 'pending', 'processing', 'completed', 'failed'
+    status: str = "pending"
     progress: int = 0
     text: Optional[str] = None
     backup_url: str
