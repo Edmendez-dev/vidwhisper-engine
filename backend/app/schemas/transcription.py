@@ -9,6 +9,7 @@ class TranscriptionResponse(BaseModel):
     id: str
     video_url: str
     status: str
+    progress: int
     text: Optional[str] = None
     backup_url: str
     created_at: datetime

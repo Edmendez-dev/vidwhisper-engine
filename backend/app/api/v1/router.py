@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, status, UploadFile, File
+from fastapi import APIRouter, status, UploadFile, File, HTTPException
 from app.schemas.transcription import TranscriptionCreate, TranscriptionResponse
 from app.models.transcription import TranscriptionModel
 from app.tasks.transcription import process_video_task
@@ -26,6 +26,7 @@ async def create_transcription(payload: TranscriptionCreate):
     new_transcription = TranscriptionModel(
         video_url=str(payload.video_url),
         status="pending",
+        progress=0,
         backup_url="pending"
     )
 
@@ -44,6 +45,7 @@ async def create_transcription(payload: TranscriptionCreate):
         "id": str(result.inserted_id),
         "video_url": new_transcription.video_url,
         "status": new_transcription.status,
+        "progress": new_transcription.progress,
         "backup_url": new_transcription.backup_url,
         "created_at": new_transcription.created_at
     }
@@ -54,6 +56,7 @@ async def create_transcription_file(file: UploadFile = File(...)):
     new_transcription = TranscriptionModel(
         video_url="pending",
         status="pending",
+        progress=0,
         backup_url="pending"
     )
 
@@ -93,9 +96,20 @@ async def create_transcription_file(file: UploadFile = File(...)):
         "id": str(result.inserted_id),
         "video_url": new_transcription.video_url,
         "status": new_transcription.status,
+        "progress": new_transcription.progress,
         "backup_url": new_transcription.backup_url,
         "created_at": new_transcription.created_at
     }
+
+# Endpoint to get a transcription by ID
+@router.get("/{transcription_id}", response_model=TranscriptionResponse, status_code=status.HTTP_200_OK)
+async def get_transcription(transcription_id: str):
+    transcription = await db_conn.db.transcriptions.find_one({"_id": ObjectId(transcription_id)})
+    if not transcription:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transcription not found")
+    transcription['id'] = str(transcription['_id'])
+    del transcription['_id']
+    return TranscriptionResponse(**transcription)
 
 # Endpoint to get all transcriptions
 @router.get("/", response_model=List[TranscriptionResponse], status_code=status.HTTP_200_OK)

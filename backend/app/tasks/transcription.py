@@ -27,7 +27,7 @@ async def get_db():
         raise e
 
 # Functions 
-def _download_video_sync(url: str, transcription_id: str):
+def _download_video_sync(url: str, transcription_id: str, loop):
     response = requests.get(url, stream=True, headers={
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         })
@@ -38,6 +38,7 @@ def _download_video_sync(url: str, transcription_id: str):
     os.makedirs('/app/tmp', exist_ok=True)
 
     # Case 1: Yotube Video
+    asyncio.run_coroutine_threadsafe(update_status_progress(transcription_id, 'downloading', 25), loop).result()
     if "youtube.com" in url or "youtu.be" in url:
         ydl_opts = {
             'format': 'bestaudio[ext=m4a]/bestaudio/best',
@@ -68,6 +69,7 @@ def _download_video_sync(url: str, transcription_id: str):
         return
     
     # Case 2: Link direct to audio or video
+    asyncio.run_coroutine_threadsafe(update_status_progress(transcription_id, 'processing', 25), loop).result()
     if "audio" in content_type or "video" in content_type:
         path_temp = f'/app/tmp/{transcription_id}_tmp'
 
@@ -79,6 +81,7 @@ def _download_video_sync(url: str, transcription_id: str):
             os.rename(path_temp, f'/app/tmp/{transcription_id}.mp3')
             return
         elif "video" in content_type:
+            asyncio.run_coroutine_threadsafe(update_status_progress(transcription_id, 'converting to audio', 35), loop).result()
             try:
                 (
                     ffmpeg.input(path_temp).output(f'/app/tmp/{transcription_id}.mp3', acodec='libmp3lame', audio_bitrate='192k').overwrite_output().run(quiet=True)
@@ -113,8 +116,9 @@ async def download_video(url: str, name_id: str):
 
     try:
         loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, _download_video_sync, url, name_id)
+        await loop.run_in_executor(None, _download_video_sync, url, name_id, loop)
 
+        await update_status_progress(name_id, 'uploading', 50)
         await loop.run_in_executor(None, _upload_to_minio_sync, audio_path, f"audios/{name_id}.mp3")
         logger.info(f'Audio uploaded to MinIO as audios/{name_id}.mp3')
         
@@ -144,6 +148,17 @@ async def delete_to_minio(object_name: str):
     except S3Error as e:
         logger.error(f'Error deleting object from MinIO: {e}')
         raise e
+    
+async def update_status_progress(transcription_id: str, status_name: str, progress: int, extra_data: dict = None):
+        db = await get_db()
+        update_doc = {"status": status_name, "progress": progress}
+        if extra_data:
+            update_doc.update(extra_data)
+        
+        await db.transcriptions.update_one(
+            {"_id": ObjectId(transcription_id)},
+            {"$set": update_doc}
+        )
 
 @celery_app.task(name="process_video_task")
 def process_video_task(transcription_id: str, video_url: str):
@@ -156,17 +171,6 @@ def process_video_task(transcription_id: str, video_url: str):
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-
-    async def update_status(status_name: str, extra_data: dict = None):
-        db = await get_db()
-        update_doc = {"status": status_name}
-        if extra_data:
-            update_doc.update(extra_data)
-        
-        await db.transcriptions.update_one(
-            {"_id": ObjectId(transcription_id)},
-            {"$set": update_doc}
-        )
 
     async def update_video_url(url: str):
         db = await get_db()
@@ -187,15 +191,18 @@ def process_video_task(transcription_id: str, video_url: str):
 
     try:
         # Change status to 'pending'
-        loop.run_until_complete(update_status('processing'))
+        loop.run_until_complete(update_status_progress(transcription_id, 'processing', 10))
 
         # Download video and convert to audio
         loop.run_until_complete(download_video(video_url, transcription_id))
         
         # Transcribe audio
+        loop.run_until_complete(update_status_progress(transcription_id, 'transcribing', 60))
         logger.info(f'Starting transcription for ID: {transcription_id}')
         result = model.transcribe(audio_path, fp16=False)
+        loop.run_until_complete(update_status_progress(transcription_id, 'transcribing', 75))
         transcribed_text = result.get('text', '')
+        loop.run_until_complete(update_status_progress(transcription_id, 'transcribing', 80))
 
         # Free memory used by the model
         # del model
@@ -203,14 +210,15 @@ def process_video_task(transcription_id: str, video_url: str):
         # gc.collect()
 
         # Update status to 'completed'
+        loop.run_until_complete(update_status_progress(transcription_id, 'finalizing', 90))
         loop.run_until_complete(update_video_url(f'http://{settings.MINIO_ENDPOINT}/{settings.MINIO_BUCKET}/audios/{transcription_id}.mp3'))
         loop.run_until_complete(set_backup_url(transcription_id))
-        loop.run_until_complete(update_status('completed', {"text": transcribed_text}))
+        loop.run_until_complete(update_status_progress(transcription_id, 'completed', 100, {"text": transcribed_text}))
 
         return { "status": "success", "id": transcription_id }
     except Exception as e:
         logger.error(f'Error processing video for ID: {transcription_id}, error: {e}')
-        loop.run_until_complete(update_status('failed'))
+        loop.run_until_complete(update_status_progress(transcription_id, 'failed', -1))
         return { "status": "failed", "message": str(e) }
     finally:
         # Clean up local audio file

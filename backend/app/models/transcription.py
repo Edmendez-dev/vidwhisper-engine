@@ -22,6 +22,7 @@ class TranscriptionModel(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     video_url: str
     status: str = "pending" # e.g., 'pending', 'processing', 'completed', 'failed'
+    progress: int = 0
     text: Optional[str] = None
     backup_url: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -34,6 +35,7 @@ class TranscriptionModel(BaseModel):
             "example": {
                 "video_url": "http://example.com/video.mp4",
                 "status": "pending",
+                "progress": 0,
                 "text": None,
                 "backup_url": "http://example.com/backup.mp3",
                 "created_at": "2024-01-01T00:00:00Z"
