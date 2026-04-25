@@ -1,8 +1,6 @@
 # VidWhisper Engine
 
-<div align="center" style="background: black; height: auto; margin-bottom: 20px; padding: 10px">
-    <img style="width: 50%" src="./assets/asset_vidwhisper.png" />
-</div>
+![Banner VidWhisper](./assets/banner_vidwhisper.png)
 
 <div align="center">
 
