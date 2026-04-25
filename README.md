@@ -352,13 +352,13 @@ graph TD
 
 ```mermaid
 graph TD
-   A[Input (URL/File)] --> B[Download/Extract Audio]
-   B --> C[Convert to MP3 (FFmpeg)]
-   C --> D[Upload to MinIO]
-   D --> F[Process with Whisper (Celery Task)]
-   F --> G[Store Transcript & Update Status]
-   G --> H[Cache Backup URL]
-   H --> |Complete|
+   A["Input (URL/File)"] --> B["Download/Extract Audio"]
+   B --> C["Convert to MP3 (FFmpeg)"]
+   C --> D["Upload to MinIO"]
+   D --> F["Process with Whisper (Celery Task)"]
+   F --> G["Store Transcript & Update Status"]
+   G --> H["Cache Backup URL"]
+   H --> I["Complete"]
 ```
 
 ### Supported Formats
