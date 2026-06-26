@@ -183,7 +183,7 @@ def process_video_task(transcription_id: str, video_url: str):
             )
     async def set_backup_url(id: str):
         db = await get_db()
-        backup_url = f'http://{settings.MINIO_ENDPOINT}/{settings.MINIO_BUCKET}/audios/{id}.mp3'
+        backup_url = f'http://{settings.MINIO_ENDPOINT_PUBLIC}/{settings.MINIO_BUCKET}/audios/{id}.mp3'
         await db.transcriptions.update_one(
             {"_id": ObjectId(id)},
             {"$set": {"backup_url": backup_url}}

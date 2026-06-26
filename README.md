@@ -119,6 +119,7 @@ VidWhisper is a sophisticated, cloud-native transcription platform that converts
 
    # MinIO
    MINIO_ENDPOINT=minio:9000
+   MINIO_ENDPOINT_PUBLIC=localhost:9000
    MINIO_ROOT_USER=minioadmin
    MINIO_ROOT_PASSWORD=your_secure_password
    MINIO_BUCKET=vidwhisper-engine
