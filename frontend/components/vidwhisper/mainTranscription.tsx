@@ -159,7 +159,7 @@ export default function MainTranscription() {
     setProgress(0);
   };
 
-  const handleRetry = () => {
+  const handleReset = () => {
     if (pollingCleanup.current) {
       pollingCleanup.current();
       pollingCleanup.current = null;
@@ -167,12 +167,18 @@ export default function MainTranscription() {
     setStatus("idle");
     setProgress(0);
     setResultText("");
+    setStatusText("");
+    setCurrentTranscriptionId(null);
+    setUrlValue("");
+    setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const isProcessing = status === "pending" || status === "processing";
+  const isCompleted = status === "completed";
   const canTranscribe =
     !isProcessing &&
-    status !== "completed" &&
+    !isCompleted &&
     (inputMode === "url" ? urlValue.trim().length > 0 : selectedFile !== null);
 
   return (
@@ -331,7 +337,7 @@ export default function MainTranscription() {
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={handleRetry}
+                onClick={handleReset}
                 className="text-red-300 hover:text-red-200 hover:bg-red-500/10 h-7 px-2 text-xs"
               >
                 <RefreshCw className="w-3.5 h-3.5 mr-1" />
@@ -369,7 +375,7 @@ export default function MainTranscription() {
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={handleRetry}
+                onClick={handleReset}
                 className="text-white/40 hover:text-white/60 hover:bg-white/5 h-7 px-2 text-xs"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
@@ -404,6 +410,14 @@ export default function MainTranscription() {
             >
               <StopCircle className="w-4 h-4" />
               {t("stopTranscription")}
+            </Button>
+          ) : isCompleted ? (
+            <Button
+              onClick={handleReset}
+              className="flex-1 h-12 rounded-xl text-white border-0 font-semibold text-sm gap-2 transition-all duration-200 shadow-lg bg-linear-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 shadow-violet-500/25 hover:shadow-violet-500/40 hover:scale-[1.01]"
+            >
+              <RefreshCw className="w-4 h-4" />
+              {t("newTranscription")}
             </Button>
           ) : (
             <Button

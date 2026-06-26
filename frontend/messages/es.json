@@ -34,6 +34,7 @@
     },
     "viewText": "Ver texto",
     "transcriptionResult": "Transcripción",
+    "newTranscription": "Nueva transcripción",
     "stopTranscription": "Detener transcripción",
     "transcribe": "Transcribir"
   },
