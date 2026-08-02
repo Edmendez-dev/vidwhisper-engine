@@ -5,6 +5,7 @@
 <div align="center">
 
 ![License](https://img.shields.io/github/license/Edmendez-dev/vidwhisper-engine?style=flat-square)
+[![GitHub release](https://img.shields.io/github/v/release/Edmendez-dev/vidwhisper-engine?include_prereleases)](https://github.com/Edmendez-dev/vidwhisper-engine/releases)
 ![Python](https://img.shields.io/badge/Python-3.11+-3776ab?style=flat-square&logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.128.0-009688?style=flat-square&logo=fastapi)
 ![Next.js](https://img.shields.io/badge/Next.js-16.1.1-000000?style=flat-square&logo=next.js)
