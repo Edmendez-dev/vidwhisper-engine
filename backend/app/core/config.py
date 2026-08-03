@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     # MinIO settings
     MINIO_ENDPOINT: str
+    MINIO_ENDPOINT_PUBLIC: str
     MINIO_ROOT_USER: str 
     MINIO_ROOT_PASSWORD: str
     MINIO_BUCKET: str
